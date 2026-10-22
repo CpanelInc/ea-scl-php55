@@ -150,9 +150,10 @@ Summary:  EOL PHP DSO
 %endif
 Vendor:   cPanel, Inc.
 Name:     %{?scl_prefix}php
-Version:  5.5.38
+%global upstream_version 5.5.38
+Version:  5.5.39
 # Doing release_prefix this way for Release allows for OBS-proof versioning, See EA-4580 for more details
-%define release_prefix 65
+%define release_prefix 1
 Release: %{release_prefix}%{?dist}.cpanel
 # All files licensed under PHP version 3.01, except
 # Zend is licensed under Zend
@@ -161,7 +162,7 @@ License:  PHP and Zend and BSD
 Group:    Development/Languages
 URL: https://endoflife.date/php
 
-Source0: http://www.php.net/distributions/php-%{version}%{?rcver}.tar.bz2
+Source0: http://www.php.net/distributions/php-%{upstream_version}%{?rcver}.tar.bz2
 Source1: https://www.litespeedtech.com/packages/lsapi/php-litespeed-8.0.1.tgz
 Source2: php.ini
 Source3: macros.php
@@ -198,6 +199,9 @@ Patch201: 0001-Update-libxml-include-file-references.patch
 
 Patch015: 0015-libxml2-2.13-makes-changes-to-how-the-parsing-state-.patch
 Patch016: 0016-Fix-libxml2-v2.15.0-compatibility.patch
+Patch044: 0044-CVE-2023-0662.patch
+Patch045: 0045-CVE-2026-109618-109619.patch
+Patch046: 0046-Report-PHP-version-5.5.39.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -1108,7 +1112,7 @@ inside them.
 %prep
 : Building %{name}-%{version}-%{release} with libvpx=%{with_libvpx} systemd=%{with_systemd} interbase=%{with_interbase} mcrypt=%{with_mcrypt} mssql=%{with_mssql} sqlite3=%{with_sqlite3} tidy=%{with_tidy} zip=%{with_zip}
 
-%setup -q -n php-%{version}%{?rcver}
+%setup -q -n php-%{upstream_version}%{?rcver}
 
 %patch7 -p1 -b .recode
 %patch42 -p1 -b .systzdata
@@ -1125,6 +1129,9 @@ sed -i 's/buffio.h/tidybuffio.h/' ext/tidy/*.c
 
 %patch015 -p1 -b .libxml2
 %patch016 -p1 -b .libxml2
+%patch044 -p1 -b .cve20230662
+%patch045 -p1 -b .cve202610961810
+%patch046 -p1 -b .version
 
 # Prevent %%doc confusion over LICENSE files
 cp Zend/LICENSE Zend/ZEND_LICENSE
@@ -2017,6 +2024,11 @@ fi
 
 
 %changelog
+* Thu Oct 22 2026 Cory McIntire <cory.mcintire@webpros.com> - 5.5.39-1
+- EA-13619: Fix CVE-2026-109618 and CVE-2026-109619 (CloudLinux backport of the PHP 7.4 fix)
+- EA-13619: Fix CVE-2023-0662 (multipart body parts limit, required by the fix above)
+- EA-13619: Bump version to 5.5.39 for CVE-2026-109618 and CVE-2026-109619; no upstream 5.5.39 release exists
+
 * Wed Apr 08 2026 Brian Mendoza <brian.mendoza@webpros.com> - 5.5.38-65
 - EA4-173: Mark ea-scl-php55 as EOL
 
